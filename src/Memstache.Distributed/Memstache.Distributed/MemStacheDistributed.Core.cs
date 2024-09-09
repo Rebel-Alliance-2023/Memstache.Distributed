@@ -5,6 +5,8 @@ using Microsoft.Extensions.Options;
 using Serilog;
 using MemStache.Distributed.Factories;
 using MemStache.Distributed.EvictionPolicies;
+using MemStache.Distributed.Secure;
+using MemStache.Distributed.Security;
 
 namespace MemStache.Distributed
 {
@@ -13,8 +15,8 @@ namespace MemStache.Distributed
         private readonly IDistributedCacheProvider _cacheProvider;
         private readonly ISerializer _serializer;
         private readonly ICompressor _compressor;
-        private readonly IEncryptor _encryptor;
-        private readonly IKeyManager _keyManager;
+        private readonly ICryptoService _cryptoService;
+        private readonly IKeyManagementService _keyManagementService;
         private readonly IEvictionPolicy _evictionPolicy;
         private readonly MemStacheOptions _options;
         private readonly ILogger _logger;
@@ -23,8 +25,8 @@ namespace MemStache.Distributed
             DistributedCacheProviderFactory cacheProviderFactory,
             SerializerFactory serializerFactory,
             CompressorFactory compressorFactory,
-            EncryptorFactory encryptorFactory,
-            KeyManagerFactory keyManagerFactory,
+            ICryptoService cryptoService,
+            IKeyManagementService keyManagementService,
             IOptions<MemStacheOptions> options,
             ILogger logger,
             IServiceProvider serviceProvider)
@@ -35,8 +37,8 @@ namespace MemStache.Distributed
             _cacheProvider = cacheProviderFactory.Create(serviceProvider);
             _serializer = serializerFactory.Create(serviceProvider);
             _compressor = compressorFactory.Create(serviceProvider);
-            _encryptor = encryptorFactory.Create(serviceProvider);
-            _keyManager = keyManagerFactory.Create(serviceProvider);
+            _cryptoService = cryptoService;
+            _keyManagementService = keyManagementService;
             _evictionPolicy = CreateEvictionPolicy(_options.GlobalEvictionPolicy);
         }
 
@@ -68,8 +70,8 @@ namespace MemStache.Distributed
 
                 if (_options.EnableEncryption)
                 {
-                    var encryptionKey = await _keyManager.GetEncryptionKeyAsync(key, cancellationToken);
-                    data = _encryptor.Decrypt(data, encryptionKey);
+                    var encryptionKey = await _keyManagementService.GetDerivedKeyAsync(key);
+                    data = _cryptoService.DecryptData(encryptionKey.PrivateKey, data);
                 }
 
                 if (_options.EnableCompression)
@@ -101,8 +103,8 @@ namespace MemStache.Distributed
 
                 if (_options.EnableEncryption || options.Encrypt)
                 {
-                    var encryptionKey = await _keyManager.GetEncryptionKeyAsync(key, cancellationToken);
-                    data = _encryptor.Encrypt(data, encryptionKey);
+                    var encryptionKey = await _keyManagementService.GenerateDerivedKeyAsync();
+                    data = _cryptoService.EncryptData(encryptionKey.PublicKey, data);
                 }
 
                 await _cacheProvider.SetAsync(key, data, options, cancellationToken);
@@ -153,6 +155,96 @@ namespace MemStache.Distributed
                 EvictionPolicy.TimeBased => new TimeBasedEvictionPolicy(_logger),
                 _ => new LruEvictionPolicy(_logger), // Default to LRU
             };
+        }
+
+        public async Task<Stash<T>> GetStashAsync<T>(string key, CancellationToken cancellationToken = default)
+        {
+            var data = await _cacheProvider.GetAsync(key, cancellationToken);
+            if (data == null)
+                return null;
+
+            var stash = _serializer.Deserialize<Stash<T>>(data);
+            _evictionPolicy.RecordAccess(key);
+
+            return stash;
+        }
+
+        public async Task SetStashAsync<T>(Stash<T> stash, MemStacheEntryOptions options = null, CancellationToken cancellationToken = default)
+        {
+            options ??= new MemStacheEntryOptions();
+            var data = _serializer.Serialize(stash);
+
+            await ProcessAndStoreData(stash.Key, data, stash.Plan, options, cancellationToken);
+            _evictionPolicy.RecordAccess(stash.Key);
+        }
+
+        public async Task<(Stash<T> Stash, bool Success)> TryGetStashAsync<T>(string key, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                var stash = await GetStashAsync<T>(key, cancellationToken);
+                return (stash, stash != null);
+            }
+            catch
+            {
+                return (null, false);
+            }
+        }
+
+        public async Task<SecureStash<T>> GetSecureStashAsync<T>(string key, CancellationToken cancellationToken = default)
+        {
+            var stash = await GetStashAsync<SecureStash<T>>(key, cancellationToken);
+            if (stash == null)
+                return null;
+
+            var secureStash = stash.Value;
+            await secureStash.DecryptAsync();
+            return secureStash;
+        }
+
+        public async Task SetSecureStashAsync<T>(SecureStash<T> secureStash, MemStacheEntryOptions options = null, CancellationToken cancellationToken = default)
+        {
+            await secureStash.EncryptAsync();
+            var stash = new Stash<SecureStash<T>>(secureStash.Key, secureStash, StashPlan.SerializeOnly);
+            await SetStashAsync(stash, options, cancellationToken);
+        }
+
+        public async Task<(SecureStash<T> SecureStash, bool Success)> TryGetSecureStashAsync<T>(string key, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                var secureStash = await GetSecureStashAsync<T>(key, cancellationToken);
+                return (secureStash, secureStash != null);
+            }
+            catch
+            {
+                return (null, false);
+            }
+        }
+
+        private async Task ProcessAndStoreData(string key, byte[] data, StashPlan plan, MemStacheEntryOptions options, CancellationToken cancellationToken)
+        {
+            switch (plan)
+            {
+                case StashPlan.Compress:
+                    data = _compressor.Compress(data);
+                    break;
+                case StashPlan.Encrypt:
+                    var encryptionKey = await _keyManagementService.GenerateDerivedKeyAsync();
+                    data = _cryptoService.EncryptData(encryptionKey.PublicKey, data);
+                    break;
+                case StashPlan.CompressAndEncrypt:
+                    data = _compressor.Compress(data);
+                    encryptionKey = await _keyManagementService.GenerateDerivedKeyAsync();
+                    data = _cryptoService.EncryptData(encryptionKey.PublicKey, data);
+                    break;
+                case StashPlan.SerializeOnly:
+                case StashPlan.Default:
+                    // Data is already serialized, do nothing
+                    break;
+            }
+
+            await _cacheProvider.SetAsync(key, data, options, cancellationToken);
         }
     }
 }

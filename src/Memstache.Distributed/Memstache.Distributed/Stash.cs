@@ -1,20 +1,54 @@
 using System;
-using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace MemStache.Distributed
 {
+    /// <summary>
+    /// Represents a cache item with metadata.
+    /// </summary>
+    /// <typeparam name="T">The type of the cached value.</typeparam>
     public class Stash<T>
     {
+        /// <summary>
+        /// Gets or sets the unique identifier for the cached item.
+        /// </summary>
         public string Key { get; set; }
+
+        /// <summary>
+        /// Gets or sets the value of the cached item.
+        /// </summary>
         public T Value { get; set; }
+
+        /// <summary>
+        /// Gets the fully qualified name of the type of the stored value.
+        /// </summary>
         public string StoredType { get; private set; }
+
+        /// <summary>
+        /// Gets or sets the size of the cached item in bytes.
+        /// </summary>
         public int Size { get; set; }
+
+        /// <summary>
+        /// Gets or sets the hash of the cached item for integrity verification.
+        /// </summary>
         public string Hash { get; set; }
+
+        /// <summary>
+        /// Gets or sets the expiration date of the cached item.
+        /// </summary>
         public DateTime ExpirationDate { get; set; }
+
+        /// <summary>
+        /// Gets or sets the caching strategy for this item.
+        /// </summary>
         public StashPlan Plan { get; set; }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Stash{T}"/> class.
+        /// </summary>
+        /// <param name="key">The unique identifier for the cached item.</param>
+        /// <param name="value">The value to be cached.</param>
+        /// <param name="plan">The caching strategy to be used.</param>
         public Stash(string key, T value, StashPlan plan = StashPlan.Default)
         {
             Key = key;
@@ -25,97 +59,34 @@ namespace MemStache.Distributed
         }
     }
 
+    /// <summary>
+    /// Defines the caching strategy for a <see cref="Stash{T}"/>.
+    /// </summary>
     public enum StashPlan
     {
+        /// <summary>
+        /// Use the default caching strategy.
+        /// </summary>
         Default,
+
+        /// <summary>
+        /// Only serialize the data without additional processing.
+        /// </summary>
         SerializeOnly,
+
+        /// <summary>
+        /// Compress the serialized data before caching.
+        /// </summary>
         Compress,
+
+        /// <summary>
+        /// Encrypt the serialized data before caching.
+        /// </summary>
         Encrypt,
+
+        /// <summary>
+        /// Compress and then encrypt the serialized data before caching.
+        /// </summary>
         CompressAndEncrypt
-    }
-
-    public partial interface IMemStacheDistributed
-    {
-        // Existing methods...
-
-        Task<Stash<T>> GetStashAsync<T>(string key, CancellationToken cancellationToken = default);
-        Task SetStashAsync<T>(Stash<T> stash, MemStacheEntryOptions options = null, CancellationToken cancellationToken = default);
-        Task<(Stash<T> Stash, bool Success)> TryGetStashAsync<T>(string key, CancellationToken cancellationToken = default);
-    }
-
-    public partial class MemStacheDistributed : IMemStacheDistributed
-    {
-        // Existing fields and constructor...
-
-        public async Task<Stash<T>> GetStashAsync<T>(string key, CancellationToken cancellationToken = default)
-        {
-            var data = await _cacheProvider.GetAsync(key, cancellationToken);
-            if (data == null)
-                return null;
-
-            var stash = DeserializeStash<T>(data);
-            _evictionPolicy.RecordAccess(key);
-
-            return stash;
-        }
-
-        public async Task SetStashAsync<T>(Stash<T> stash, MemStacheEntryOptions options = null, CancellationToken cancellationToken = default)
-        {
-            options ??= new MemStacheEntryOptions();
-            var data = SerializeStash(stash);
-
-            await ProcessAndStoreData(stash.Key, data, stash.Plan, options, cancellationToken);
-            _evictionPolicy.RecordAccess(stash.Key);
-        }
-
-        public async Task<(Stash<T> Stash, bool Success)> TryGetStashAsync<T>(string key, CancellationToken cancellationToken = default)
-        {
-            try
-            {
-                var stash = await GetStashAsync<T>(key, cancellationToken);
-                return (stash, stash != null);
-            }
-            catch
-            {
-                return (null, false);
-            }
-        }
-
-        private byte[] SerializeStash<T>(Stash<T> stash)
-        {
-            return _serializer.Serialize(stash);
-        }
-
-        private Stash<T> DeserializeStash<T>(byte[] data)
-        {
-            return _serializer.Deserialize<Stash<T>>(data);
-        }
-
-        private async Task ProcessAndStoreData(string key, byte[] data, StashPlan plan, MemStacheEntryOptions options, CancellationToken cancellationToken)
-        {
-            switch (plan)
-            {
-                case StashPlan.Compress:
-                    data = _compressor.Compress(data);
-                    break;
-                case StashPlan.Encrypt:
-                    var encryptionKey = await _keyManager.GetEncryptionKeyAsync(key, cancellationToken);
-                    data = _encryptor.Encrypt(data, encryptionKey);
-                    break;
-                case StashPlan.CompressAndEncrypt:
-                    data = _compressor.Compress(data);
-                    encryptionKey = await _keyManager.GetEncryptionKeyAsync(key, cancellationToken);
-                    data = _encryptor.Encrypt(data, encryptionKey);
-                    break;
-                case StashPlan.SerializeOnly:
-                case StashPlan.Default:
-                    // Data is already serialized, do nothing
-                    break;
-            }
-
-            await _cacheProvider.SetAsync(key, data, options, cancellationToken);
-        }
-
-        // Implement other IMemStacheDistributed methods...
     }
 }

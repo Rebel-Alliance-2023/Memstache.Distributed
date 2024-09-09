@@ -13,13 +13,4 @@ namespace MemStache.Distributed
         public TimeSpan? DefaultAbsoluteExpiration { get; set; }
         public TimeSpan? DefaultSlidingExpiration { get; set; }
     }
-
-    public class MemStacheEntryOptions
-    {
-        public TimeSpan? AbsoluteExpiration { get; set; }
-        public TimeSpan? SlidingExpiration { get; set; }
-        public EvictionPolicy EvictionPolicy { get; set; }
-        public bool Compress { get; set; }
-        public bool Encrypt { get; set; }
-    }
 }

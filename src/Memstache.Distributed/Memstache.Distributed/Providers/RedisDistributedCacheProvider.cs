@@ -80,7 +80,7 @@ namespace MemStache.Distributed.Providers
         {
             if (options.AbsoluteExpiration.HasValue)
             {
-                return options.AbsoluteExpiration.Value;
+                return options.AbsoluteExpiration.Value - DateTimeOffset.UtcNow;
             }
             else if (options.SlidingExpiration.HasValue)
             {
