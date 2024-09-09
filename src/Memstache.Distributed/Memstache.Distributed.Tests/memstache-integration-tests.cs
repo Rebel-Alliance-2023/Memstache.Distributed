@@ -118,7 +118,7 @@ namespace MemStache.Distributed.Tests.Integration
             var value = "expiringValue";
             var options = new MemStacheEntryOptions
             {
-                AbsoluteExpiration = TimeSpan.FromSeconds(1)
+                AbsoluteExpiration = DateTimeOffset.UtcNow.AddSeconds(1) // Changed from TimeSpan to DateTimeOffset
             };
 
             // Act
