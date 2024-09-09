@@ -3,7 +3,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Trace;
 using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
 using Serilog;
+using OpenTelemetry.Exporter;
+using OpenTelemetry.Instrumentation.AspNetCore;
+using OpenTelemetry.Instrumentation.Http;
 
 namespace MemStache.Distributed.Telemetry
 {
@@ -27,38 +31,38 @@ namespace MemStache.Distributed.Telemetry
             });
 
             // Configure OpenTelemetry
-            services.AddOpenTelemetryTracing(builder =>
-            {
-                builder
-                    .AddSource("MemStache.Distributed")
-                    .SetResourceBuilder(OpenTelemetry.Resources.ResourceBuilder.CreateDefault().AddService("MemStache.Distributed"))
-                    .AddHttpClientInstrumentation()
-                    .AddAspNetCoreInstrumentation();
-
-                if (options.UseJaeger)
+            services.AddOpenTelemetry()
+                .WithTracing(builder =>
                 {
-                    builder.AddJaegerExporter();
-                }
+                    builder
+                        .AddSource("MemStache.Distributed")
+                        .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("MemStache.Distributed"))
+                        .AddHttpClientInstrumentation()
+                        .AddAspNetCoreInstrumentation();
 
-                if (options.UseZipkin)
+                    if (options.UseJaeger)
+                    {
+                        builder.AddJaegerExporter();
+                    }
+
+                    if (options.UseZipkin)
+                    {
+                        builder.AddZipkinExporter();
+                    }
+                })
+                .WithMetrics(builder =>
                 {
-                    builder.AddZipkinExporter();
-                }
-            });
+                    builder
+                        .AddMeter("MemStache.Distributed")
+                        .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("MemStache.Distributed"))
+                        .AddHttpClientInstrumentation()
+                        .AddAspNetCoreInstrumentation();
 
-            services.AddOpenTelemetryMetrics(builder =>
-            {
-                builder
-                    .AddMeter("MemStache.Distributed")
-                    .SetResourceBuilder(OpenTelemetry.Resources.ResourceBuilder.CreateDefault().AddService("MemStache.Distributed"))
-                    .AddHttpClientInstrumentation()
-                    .AddAspNetCoreInstrumentation();
-
-                if (options.UsePrometheus)
-                {
-                    builder.AddPrometheusExporter();
-                }
-            });
+                    if (options.UsePrometheus)
+                    {
+                        builder.AddPrometheusExporter();
+                    }
+                });
 
             return services;
         }

@@ -12,11 +12,13 @@ namespace MemStache.Distributed.Providers
         private readonly ConnectionMultiplexer _redis;
         private readonly IDatabase _db;
         private readonly ILogger _logger;
+        private readonly RedisOptions _options;
 
         public RedisDistributedCacheProvider(IOptions<RedisOptions> options, ILogger logger)
         {
-            _redis = ConnectionMultiplexer.Connect(options.Value.Configuration);
-            _db = _redis.GetDatabase();
+            _options = options.Value;
+            _redis = ConnectionMultiplexer.Connect(_options.Configuration);
+            _db = _redis.GetDatabase(_options.Database);
             _logger = logger;
         }
 
@@ -78,7 +80,7 @@ namespace MemStache.Distributed.Providers
         {
             if (options.AbsoluteExpiration.HasValue)
             {
-                return options.AbsoluteExpiration.Value - DateTimeOffset.UtcNow;
+                return options.AbsoluteExpiration.Value;
             }
             else if (options.SlidingExpiration.HasValue)
             {
@@ -91,5 +93,13 @@ namespace MemStache.Distributed.Providers
     public class RedisOptions
     {
         public string Configuration { get; set; }
+        public int Database { get; set; } = -1; // -1 is the default database in Redis
+        public int ConnectTimeout { get; set; } = 5000; // 5 seconds
+        public int SyncTimeout { get; set; } = 5000; // 5 seconds
+        public bool AllowAdmin { get; set; } = false;
+        public string Password { get; set; }
+        public string[] EndPoints { get; set; }
+        public bool Ssl { get; set; } = false;
+        public string SslHost { get; set; }
     }
 }

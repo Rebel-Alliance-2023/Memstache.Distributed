@@ -1,105 +1,80 @@
 using System;
 using Microsoft.Extensions.DependencyInjection;
-using MemStache.Distributed.Providers;
-using MemStache.Distributed.Serialization;
-using MemStache.Distributed.Compression;
-using MemStache.Distributed.Encryption;
-using MemStache.Distributed.KeyManagement;
 
 namespace MemStache.Distributed.Factories
 {
     public class DistributedCacheProviderFactory
     {
-        private readonly IServiceProvider _serviceProvider;
+        private readonly Func<IServiceProvider, IDistributedCacheProvider> _factory;
 
-        public DistributedCacheProviderFactory(IServiceProvider serviceProvider)
+        public DistributedCacheProviderFactory(Func<IServiceProvider, IDistributedCacheProvider> factory)
         {
-            _serviceProvider = serviceProvider;
+            _factory = factory;
         }
 
-        public IDistributedCacheProvider Create(string providerName)
+        public IDistributedCacheProvider Create(IServiceProvider serviceProvider)
         {
-            return providerName.ToLowerInvariant() switch
-            {
-                "redis" => _serviceProvider.GetRequiredService<RedisDistributedCacheProvider>(),
-                _ => throw new ArgumentException($"Unsupported cache provider: {providerName}")
-            };
+            return _factory(serviceProvider);
         }
     }
 
     public class SerializerFactory
     {
-        private readonly IServiceProvider _serviceProvider;
+        private readonly Func<IServiceProvider, ISerializer> _factory;
 
-        public SerializerFactory(IServiceProvider serviceProvider)
+        public SerializerFactory(Func<IServiceProvider, ISerializer> factory)
         {
-            _serviceProvider = serviceProvider;
+            _factory = factory;
         }
 
-        public ISerializer Create(string serializerName)
+        public ISerializer Create(IServiceProvider serviceProvider)
         {
-            return serializerName.ToLowerInvariant() switch
-            {
-                "systemtextjson" => _serviceProvider.GetRequiredService<SystemTextJsonSerializer>(),
-                _ => throw new ArgumentException($"Unsupported serializer: {serializerName}")
-            };
+            return _factory(serviceProvider);
         }
     }
 
     public class CompressorFactory
     {
-        private readonly IServiceProvider _serviceProvider;
+        private readonly Func<IServiceProvider, ICompressor> _factory;
 
-        public CompressorFactory(IServiceProvider serviceProvider)
+        public CompressorFactory(Func<IServiceProvider, ICompressor> factory)
         {
-            _serviceProvider = serviceProvider;
+            _factory = factory;
         }
 
-        public ICompressor Create(string compressorName)
+        public ICompressor Create(IServiceProvider serviceProvider)
         {
-            return compressorName.ToLowerInvariant() switch
-            {
-                "gzip" => _serviceProvider.GetRequiredService<GzipCompressor>(),
-                _ => throw new ArgumentException($"Unsupported compressor: {compressorName}")
-            };
+            return _factory(serviceProvider);
         }
     }
 
     public class EncryptorFactory
     {
-        private readonly IServiceProvider _serviceProvider;
+        private readonly Func<IServiceProvider, IEncryptor> _factory;
 
-        public EncryptorFactory(IServiceProvider serviceProvider)
+        public EncryptorFactory(Func<IServiceProvider, IEncryptor> factory)
         {
-            _serviceProvider = serviceProvider;
+            _factory = factory;
         }
 
-        public IEncryptor Create(string encryptorName)
+        public IEncryptor Create(IServiceProvider serviceProvider)
         {
-            return encryptorName.ToLowerInvariant() switch
-            {
-                "aes" => _serviceProvider.GetRequiredService<AesEncryptor>(),
-                _ => throw new ArgumentException($"Unsupported encryptor: {encryptorName}")
-            };
+            return _factory(serviceProvider);
         }
     }
 
     public class KeyManagerFactory
     {
-        private readonly IServiceProvider _serviceProvider;
+        private readonly Func<IServiceProvider, IKeyManager> _factory;
 
-        public KeyManagerFactory(IServiceProvider serviceProvider)
+        public KeyManagerFactory(Func<IServiceProvider, IKeyManager> factory)
         {
-            _serviceProvider = serviceProvider;
+            _factory = factory;
         }
 
-        public IKeyManager Create(string keyManagerName)
+        public IKeyManager Create(IServiceProvider serviceProvider)
         {
-            return keyManagerName.ToLowerInvariant() switch
-            {
-                "azurekeyvault" => _serviceProvider.GetRequiredService<AzureKeyVaultManager>(),
-                _ => throw new ArgumentException($"Unsupported key manager: {keyManagerName}")
-            };
+            return _factory(serviceProvider);
         }
     }
 }

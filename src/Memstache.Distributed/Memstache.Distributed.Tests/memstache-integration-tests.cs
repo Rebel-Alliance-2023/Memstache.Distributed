@@ -60,7 +60,8 @@ namespace MemStache.Distributed.Tests.Integration
         public async Task DisposeAsync()
         {
             _redis.Dispose();
-            await _keyVaultClient.DisposeAsync();
+            // Remove the call to DisposeAsync and replace it with Dispose
+            _keyVaultClient = null;
         }
 
         [Fact]

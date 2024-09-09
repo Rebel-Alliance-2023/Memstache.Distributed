@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace MemStache.Distributed
 {
-    public interface IMemStacheDistributed
+    public partial interface IMemStacheDistributed
     {
         Task<T?> GetAsync<T>(string key, CancellationToken cancellationToken = default);
         Task SetAsync<T>(string key, T value, MemStacheEntryOptions? options = null, CancellationToken cancellationToken = default);

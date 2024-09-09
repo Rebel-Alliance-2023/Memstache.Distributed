@@ -8,7 +8,7 @@ using MemStache.Distributed.EvictionPolicies;
 
 namespace MemStache.Distributed
 {
-    public class MemStacheDistributed : IMemStacheDistributed
+    public partial class MemStacheDistributed : IMemStacheDistributed
     {
         private readonly IDistributedCacheProvider _cacheProvider;
         private readonly ISerializer _serializer;
@@ -26,16 +26,17 @@ namespace MemStache.Distributed
             EncryptorFactory encryptorFactory,
             KeyManagerFactory keyManagerFactory,
             IOptions<MemStacheOptions> options,
-            ILogger logger)
+            ILogger logger,
+            IServiceProvider serviceProvider)
         {
             _options = options.Value;
             _logger = logger;
 
-            _cacheProvider = cacheProviderFactory.Create(_options.DistributedCacheProvider);
-            _serializer = serializerFactory.Create(_options.Serializer);
-            _compressor = compressorFactory.Create("gzip");
-            _encryptor = encryptorFactory.Create("aes");
-            _keyManager = keyManagerFactory.Create(_options.KeyManagementProvider);
+            _cacheProvider = cacheProviderFactory.Create(serviceProvider);
+            _serializer = serializerFactory.Create(serviceProvider);
+            _compressor = compressorFactory.Create(serviceProvider);
+            _encryptor = encryptorFactory.Create(serviceProvider);
+            _keyManager = keyManagerFactory.Create(serviceProvider);
             _evictionPolicy = CreateEvictionPolicy(_options.GlobalEvictionPolicy);
         }
 

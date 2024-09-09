@@ -12,10 +12,10 @@ namespace MemStache.Distributed.KeyManagement
     public class AzureKeyVaultManager : IKeyManager
     {
         private readonly KeyClient _keyClient;
-        private readonly ILogger _logger;
+        private readonly Serilog.ILogger _logger;
         private readonly AzureKeyVaultOptions _options;
 
-        public AzureKeyVaultManager(IOptions<AzureKeyVaultOptions> options, ILogger logger)
+        public AzureKeyVaultManager(IOptions<AzureKeyVaultOptions> options, Serilog.ILogger logger)
         {
             _options = options.Value;
             _logger = logger;
@@ -26,7 +26,7 @@ namespace MemStache.Distributed.KeyManagement
         {
             try
             {
-                var key = await _keyClient.GetKeyAsync(keyIdentifier, cancellationToken);
+                var key = await _keyClient.GetKeyAsync(keyIdentifier, null, cancellationToken);
                 return key.Value.Key.K;
             }
             catch (Exception ex)
@@ -40,8 +40,7 @@ namespace MemStache.Distributed.KeyManagement
         {
             try
             {
-                var operation = await _keyClient.RotateKeyAsync(keyIdentifier, cancellationToken);
-                await operation.WaitForCompletionAsync(cancellationToken);
+                var key = await _keyClient.RotateKeyAsync(keyIdentifier, cancellationToken);
                 _logger.Information("Successfully rotated key {KeyIdentifier}", keyIdentifier);
             }
             catch (Exception ex)
