@@ -7,26 +7,40 @@ using StackExchange.Redis;
 using Azure.Identity;
 using Azure.Security.KeyVault.Keys;
 using Serilog;
+using Xunit.Abstractions;
+using Serilog.Extensions.Logging;
 
-namespace MemStache.Distributed.Tests.Integration
+namespace Memstache.Distributed.Tests.IntegrationTests
 {
-    public class MemStacheDistributedIntegrationTests : IAsyncLifetime
+    public class MemStacheDistributedIntegrationTests : IAsyncLifetime, IDisposable
     {
         private IServiceProvider _serviceProvider;
         private IMemStacheDistributed _memStache;
         private ConnectionMultiplexer _redis;
         private KeyClient _keyVaultClient;
+        private readonly Serilog.Core.Logger _serilogLogger;
+        private readonly ITestOutputHelper _output;
+
+        public MemStacheDistributedIntegrationTests(ITestOutputHelper output)
+        {
+            _output = output;
+
+            // Configure Serilog to write to the xUnit test output and console
+            _serilogLogger = new LoggerConfiguration()
+                .MinimumLevel.Debug()
+                .WriteTo.TestOutput(_output) // Direct Serilog logs to xUnit output
+                .WriteTo.Console() // Also write to the console
+                .CreateLogger();
+
+            // Use Serilog's LoggerFactory to create a Microsoft.Extensions.Logging.ILogger instance
+            Log.Logger = _serilogLogger;
+        }
 
         public async Task InitializeAsync()
         {
             var services = new ServiceCollection();
 
-            // Configure Serilog
-            Log.Logger = new LoggerConfiguration()
-                .WriteTo.Console()
-                .CreateLogger();
-
-            services.AddLogging(loggingBuilder => loggingBuilder.AddSerilog(dispose: true));
+            services.AddLogging(loggingBuilder => loggingBuilder.AddSerilog(_serilogLogger, dispose: true));
 
             // Configure MemStache
             services.AddMemStacheDistributed(options =>
@@ -59,8 +73,8 @@ namespace MemStache.Distributed.Tests.Integration
 
         public async Task DisposeAsync()
         {
+            // Dispose of Redis connection and other resources
             _redis.Dispose();
-            // Remove the call to DisposeAsync and replace it with Dispose
             _keyVaultClient = null;
         }
 
@@ -118,7 +132,7 @@ namespace MemStache.Distributed.Tests.Integration
             var value = "expiringValue";
             var options = new MemStacheEntryOptions
             {
-                AbsoluteExpiration = DateTimeOffset.UtcNow.AddSeconds(1) // Changed from TimeSpan to DateTimeOffset
+                AbsoluteExpiration = DateTimeOffset.UtcNow.AddSeconds(1)
             };
 
             // Act
@@ -128,6 +142,11 @@ namespace MemStache.Distributed.Tests.Integration
 
             // Assert
             Assert.False(exists);
+        }
+
+        public void Dispose()
+        {
+            _serilogLogger?.Dispose();
         }
 
         // Add more integration tests...

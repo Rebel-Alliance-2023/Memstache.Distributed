@@ -1,21 +1,34 @@
 using System;
 using System.Text;
 using Xunit;
-using Moq;
+using Serilog;
+using Serilog.Extensions.Logging;
+using Xunit.Abstractions;
 using Microsoft.Extensions.Logging;
 using MemStache.Distributed.Security;
 using MemStache.Distributed.Encryption;
 
 namespace MemStache.Distributed.Tests.Unit
 {
-    public class EncryptionTests
+    public class EncryptionTests : IDisposable
     {
         private readonly AesEncryptor _encryptor;
+        private readonly Serilog.Core.Logger _serilogLogger;
+        private readonly ITestOutputHelper _output;
 
-        public EncryptionTests()
+        public EncryptionTests(ITestOutputHelper output)
         {
-            var mockLogger = new Mock<ILogger<AesEncryptor>>();
-            _encryptor = new AesEncryptor((Serilog.ILogger)mockLogger.Object);
+            _output = output;
+
+            // Configure Serilog to write to the xUnit test output
+            _serilogLogger = new LoggerConfiguration()
+                .MinimumLevel.Debug()
+                .WriteTo.TestOutput(_output) // Direct Serilog logs to xUnit output
+                .WriteTo.Console() // Also write to the console
+                .CreateLogger();
+
+            // Use Serilog logger directly for AesEncryptor
+            _encryptor = new AesEncryptor(_serilogLogger);
         }
 
         [Fact]
@@ -80,6 +93,12 @@ namespace MemStache.Distributed.Tests.Unit
             var key = new byte[32]; // 256-bit key
             new Random().NextBytes(key);
             return key;
+        }
+
+        // Dispose of the logger properly
+        public void Dispose()
+        {
+            _serilogLogger?.Dispose();
         }
     }
 }

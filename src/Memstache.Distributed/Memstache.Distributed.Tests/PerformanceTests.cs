@@ -3,26 +3,41 @@ using System.Threading.Tasks;
 using System.Diagnostics;
 using System.Collections.Generic;
 using Xunit;
-using Moq;
 using Microsoft.Extensions.Logging;
+using Serilog;
+using Serilog.Extensions.Logging;
+using Xunit.Abstractions;
 using MemStache.Distributed.Performance;
 
 namespace MemStache.Distributed.Tests.Unit
 {
-    public class PerformanceTests
+    public class PerformanceTests : IDisposable
     {
-        private readonly Mock<ILogger<BatchOperationManager<string, int>>> _mockLogger;
+        private readonly ILogger<BatchOperationManager<string, int>> _logger;
+        private readonly Serilog.Core.Logger _serilogLogger;
+        private readonly ITestOutputHelper _output;
 
-        public PerformanceTests()
+        public PerformanceTests(ITestOutputHelper output)
         {
-            _mockLogger = new Mock<ILogger<BatchOperationManager<string, int>>>();
+            _output = output;
+
+            // Configure Serilog to write to the xUnit test output
+            _serilogLogger = new LoggerConfiguration()
+                .MinimumLevel.Debug()
+                .WriteTo.TestOutput(_output) // Direct Serilog logs to xUnit output
+                .WriteTo.Console() // Also write to the console
+                .CreateLogger();
+
+            // Use Serilog's LoggerFactory to create a Microsoft.Extensions.Logging.ILogger instance
+            var loggerFactory = new SerilogLoggerFactory(_serilogLogger);
+            _logger = loggerFactory.CreateLogger<BatchOperationManager<string, int>>();
         }
 
         [Fact]
         public async Task BatchOperationManager_ShouldPreventDuplicateOperations()
         {
             // Arrange
-            var manager = new BatchOperationManager<string, int>((Serilog.ILogger)_mockLogger.Object);
+            var manager = new BatchOperationManager<string, int>(_serilogLogger);
             var operationCount = 0;
 
             Func<string, Task<int>> operation = async (key) =>
@@ -50,7 +65,7 @@ namespace MemStache.Distributed.Tests.Unit
             // Arrange
             var poolSize = 10;
             var arraySize = 1024;
-            var pool = new MemoryEfficientByteArrayPool(arraySize, poolSize, (Serilog.ILogger)_mockLogger.Object);
+            var pool = new MemoryEfficientByteArrayPool(arraySize, poolSize, _serilogLogger);
 
             // Act
             var arrays = new List<byte[]>();
@@ -81,7 +96,7 @@ namespace MemStache.Distributed.Tests.Unit
         public async Task ParallelOperations_ShouldCompleteWithinReasonableTime()
         {
             // Arrange
-            var manager = new BatchOperationManager<string, int>((Serilog.ILogger)_mockLogger.Object);
+            var manager = new BatchOperationManager<string, int>(_serilogLogger);
             var operationCount = 1000;
             var maxDurationMs = 2000; // 2 seconds
 
@@ -102,8 +117,14 @@ namespace MemStache.Distributed.Tests.Unit
             stopwatch.Stop();
 
             // Assert
-            Assert.True(stopwatch.ElapsedMilliseconds < maxDurationMs, 
+            Assert.True(stopwatch.ElapsedMilliseconds < maxDurationMs,
                 $"Operation took {stopwatch.ElapsedMilliseconds}ms, which is more than the expected {maxDurationMs}ms");
+        }
+
+        // Dispose of the logger properly
+        public void Dispose()
+        {
+            _serilogLogger?.Dispose();
         }
     }
 }

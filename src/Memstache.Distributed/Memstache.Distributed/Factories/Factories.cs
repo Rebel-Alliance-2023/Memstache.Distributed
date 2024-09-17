@@ -3,7 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace MemStache.Distributed.Factories
 {
-    public class DistributedCacheProviderFactory
+    public class DistributedCacheProviderFactory : IDistributedCacheProviderFactory
     {
         private readonly Func<IServiceProvider, IDistributedCacheProvider> _factory;
 
@@ -18,7 +18,7 @@ namespace MemStache.Distributed.Factories
         }
     }
 
-    public class SerializerFactory
+    public class SerializerFactory : ISerializerFactory
     {
         private readonly Func<IServiceProvider, ISerializer> _factory;
 
@@ -33,7 +33,7 @@ namespace MemStache.Distributed.Factories
         }
     }
 
-    public class CompressorFactory
+    public class CompressorFactory : ICompressorFactory
     {
         private readonly Func<IServiceProvider, ICompressor> _factory;
 

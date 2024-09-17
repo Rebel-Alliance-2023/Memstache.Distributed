@@ -7,44 +7,41 @@ using Serilog;
 
 namespace MemStache.Distributed.Performance
 {
-    public class BatchOperationManager<TKey, TValue>
+    public class BatchOperationManager<TKey, TResult>
     {
-        private readonly ConcurrentDictionary<TKey, TaskCompletionSource<TValue>> _pendingOperations = new();
-        private readonly ILogger _logger;
+        private readonly Serilog.ILogger _logger;
+        private readonly ConcurrentDictionary<TKey, Lazy<Task<TResult>>> _operations;
 
-        public BatchOperationManager(ILogger logger)
+        public BatchOperationManager(Serilog.ILogger logger)
         {
             _logger = logger;
+            _operations = new ConcurrentDictionary<TKey, Lazy<Task<TResult>>>();
         }
 
-        public async Task<TValue> GetOrAddAsync(TKey key, Func<TKey, Task<TValue>> valueFactory)
+        public Task<TResult> GetOrAddAsync(TKey key, Func<TKey, Task<TResult>> operation)
         {
-            TaskCompletionSource<TValue> tcs = _pendingOperations.GetOrAdd(key, _ => new TaskCompletionSource<TValue>());
+            _logger.Information("Attempting to get or add operation for key: {Key}", key);
 
-            if (tcs.Task.IsCompleted)
-            {
-                return await tcs.Task;
-            }
+            // Use Lazy<Task<TResult>> to ensure only one task is created for a given key
+            var lazyTask = _operations.GetOrAdd(key, k =>
+                new Lazy<Task<TResult>>(() => ExecuteOperationAsync(k, operation)));
 
+            _logger.Information("Operation for key {Key} is in progress: {InProgress}", key, !lazyTask.IsValueCreated);
+
+            return lazyTask.Value;
+        }
+
+        private async Task<TResult> ExecuteOperationAsync(TKey key, Func<TKey, Task<TResult>> operation)
+        {
             try
             {
-                if (_pendingOperations.TryGetValue(key, out var existingTcs) && existingTcs == tcs)
-                {
-                    TValue value = await valueFactory(key);
-                    tcs.TrySetResult(value);
-                }
-
-                return await tcs.Task;
-            }
-            catch (Exception ex)
-            {
-                _logger.Error(ex, "Error in batch operation for key {Key}", key);
-                tcs.TrySetException(ex);
-                throw;
+                _logger.Information("Starting execution of operation for key: {Key}", key);
+                return await operation(key);
             }
             finally
             {
-                _pendingOperations.TryRemove(key, out _);
+                _operations.TryRemove(key, out _); // Remove completed task from dictionary
+                _logger.Information("Completed operation for key: {Key}", key);
             }
         }
     }

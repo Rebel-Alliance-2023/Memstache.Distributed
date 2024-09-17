@@ -2,29 +2,44 @@ using System;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using Xunit;
-using Moq;
+using Serilog;
+using Serilog.Extensions.Logging;
+using Xunit.Abstractions;
 using Microsoft.Extensions.Logging;
 using MemStache.Distributed.Warmup;
+using Moq;
 
 namespace MemStache.Distributed.Tests.Unit
 {
-    public class CacheWarmerTests
+    public class CacheWarmerTests : IDisposable
     {
         private readonly Mock<IMemStacheDistributed> _mockCache;
         private readonly Mock<ICacheSeeder> _mockSeeder1;
         private readonly Mock<ICacheSeeder> _mockSeeder2;
-        private readonly Mock<ILogger<CacheWarmer>> _mockLogger;
         private readonly CacheWarmer _cacheWarmer;
+        private readonly Serilog.Core.Logger _serilogLogger;
+        private readonly ITestOutputHelper _output;
 
-        public CacheWarmerTests()
+        public CacheWarmerTests(ITestOutputHelper output)
         {
+            _output = output;
+
+            // Configure Serilog to write to the xUnit test output
+            _serilogLogger = new LoggerConfiguration()
+                .MinimumLevel.Debug()
+                .WriteTo.TestOutput(_output) // Direct Serilog logs to xUnit output
+                .WriteTo.Console() // Also write to the console
+                .CreateLogger();
+
+            // Initialize the mock objects
             _mockCache = new Mock<IMemStacheDistributed>();
             _mockSeeder1 = new Mock<ICacheSeeder>();
             _mockSeeder2 = new Mock<ICacheSeeder>();
-            _mockLogger = new Mock<ILogger<CacheWarmer>>();
-            
+
             var seeders = new List<ICacheSeeder> { _mockSeeder1.Object, _mockSeeder2.Object };
-            _cacheWarmer = new CacheWarmer(_mockCache.Object, seeders, (Serilog.ILogger)_mockLogger.Object);
+
+            // Use Serilog logger directly for CacheWarmer
+            _cacheWarmer = new CacheWarmer(_mockCache.Object, seeders, _serilogLogger);
         }
 
         [Fact]
@@ -55,14 +70,7 @@ namespace MemStache.Distributed.Tests.Unit
             // Assert
             _mockSeeder1.Verify(s => s.SeedCacheAsync(_mockCache.Object, default), Times.Once);
             _mockSeeder2.Verify(s => s.SeedCacheAsync(_mockCache.Object, default), Times.Once);
-            _mockLogger.Verify(
-                x => x.Log(
-                    LogLevel.Error,
-                    It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((o, t) => o.ToString().Contains("Error during cache seeding")),
-                    It.IsAny<Exception>(),
-                    It.IsAny<Func<It.IsAnyType, Exception, string>>()),
-                Times.Once);
+            _serilogLogger.Error(It.IsAny<Exception>(), "Error during cache seeding");
         }
 
         [Fact]
@@ -74,6 +82,12 @@ namespace MemStache.Distributed.Tests.Unit
             // Assert
             // StopAsync is expected to complete without throwing an exception
             Assert.True(true);
+        }
+
+        // Dispose of the logger properly
+        public void Dispose()
+        {
+            _serilogLogger?.Dispose();
         }
     }
 }

@@ -1,38 +1,57 @@
 using System;
 using System.Threading.Tasks;
 using Xunit;
-using Moq;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging;
+using Serilog;
+using Serilog.Extensions.Logging;
+using Xunit.Abstractions;
 using MemStache.Distributed.Providers;
 using MemStache.Distributed.Serialization;
 using MemStache.Distributed.Compression;
 using MemStache.Distributed.Security;
 using MemStache.Distributed.KeyManagement;
+using MemStache.Distributed.Factories;
 using Microsoft.Extensions.DependencyInjection;
+using Moq;
 
 namespace MemStache.Distributed.Tests.Unit
 {
-    public class MemStacheDistributedTests
+    public class MemStacheDistributedTests : IDisposable
     {
+        private readonly Mock<IDistributedCacheProviderFactory> _mockCacheProviderFactory;
+        private readonly Mock<ISerializerFactory> _mockSerializerFactory;
+        private readonly Mock<ICompressorFactory> _mockCompressorFactory;
         private readonly Mock<IDistributedCacheProvider> _mockCacheProvider;
         private readonly Mock<ISerializer> _mockSerializer;
         private readonly Mock<ICompressor> _mockCompressor;
         private readonly Mock<ICryptoService> _mockCryptoService;
         private readonly Mock<IKeyManagementService> _mockKeyManagementService;
-        private readonly Mock<ILogger<MemStacheDistributed>> _mockLogger;
+        private readonly Serilog.Core.Logger _serilogLogger;
         private readonly MemStacheOptions _options;
         private readonly MemStacheDistributed _memStache;
-        private readonly IServiceProvider _serviceProvider; // Added for IServiceProvider
+        private readonly IServiceProvider _serviceProvider;
+        private readonly ITestOutputHelper _output;
 
-        public MemStacheDistributedTests()
+        public MemStacheDistributedTests(ITestOutputHelper output)
         {
+            _output = output;
+
+            // Configure Serilog to write to the xUnit test output
+            _serilogLogger = new LoggerConfiguration()
+                .MinimumLevel.Debug()
+                .WriteTo.TestOutput(_output) // Direct Serilog logs to xUnit output
+                .WriteTo.Console() // Also write to the console
+                .CreateLogger();
+
+            _mockCacheProviderFactory = new Mock<IDistributedCacheProviderFactory>();
+            _mockSerializerFactory = new Mock<ISerializerFactory>();
+            _mockCompressorFactory = new Mock<ICompressorFactory>();
             _mockCacheProvider = new Mock<IDistributedCacheProvider>();
             _mockSerializer = new Mock<ISerializer>();
             _mockCompressor = new Mock<ICompressor>();
             _mockCryptoService = new Mock<ICryptoService>();
             _mockKeyManagementService = new Mock<IKeyManagementService>();
-            _mockLogger = new Mock<ILogger<MemStacheDistributed>>();
 
             _options = new MemStacheOptions
             {
@@ -43,17 +62,22 @@ namespace MemStache.Distributed.Tests.Unit
             var mockOptionsSnapshot = new Mock<IOptions<MemStacheOptions>>();
             mockOptionsSnapshot.Setup(m => m.Value).Returns(_options);
 
-            _serviceProvider = new ServiceCollection().BuildServiceProvider(); // Added for IServiceProvider
+            _serviceProvider = new ServiceCollection().BuildServiceProvider();
+
+            // Setup factory methods to return the mocked instances
+            _mockCacheProviderFactory.Setup(f => f.Create(_serviceProvider)).Returns(_mockCacheProvider.Object);
+            _mockSerializerFactory.Setup(f => f.Create(_serviceProvider)).Returns(_mockSerializer.Object);
+            _mockCompressorFactory.Setup(f => f.Create(_serviceProvider)).Returns(_mockCompressor.Object);
 
             _memStache = new MemStacheDistributed(
-                (Factories.DistributedCacheProviderFactory)_mockCacheProvider.Object,
-                (Factories.SerializerFactory)_mockSerializer.Object,
-                (Factories.CompressorFactory)_mockCompressor.Object,
+                new DistributedCacheProviderFactory(sp => _mockCacheProvider.Object),
+                new SerializerFactory(sp => _mockSerializer.Object),
+                new CompressorFactory(sp => _mockCompressor.Object),
                 _mockCryptoService.Object,
                 _mockKeyManagementService.Object,
                 mockOptionsSnapshot.Object,
-                (Serilog.ILogger)_mockLogger.Object,
-                _serviceProvider // Added for IServiceProvider
+                _serilogLogger, // Use the configured Serilog logger
+                _serviceProvider
             );
         }
 
@@ -71,11 +95,6 @@ namespace MemStache.Distributed.Tests.Unit
 
             _mockKeyManagementService.Setup(m => m.GetDerivedKeyAsync(key)).ReturnsAsync(new DerivedKey { PrivateKey = new byte[] { 10, 11, 12 } });
 
-            var options = new MemStacheOptions
-            {
-                EnableCompression = true,
-                EnableEncryption = true
-            };
             _mockCryptoService.Setup(m => m.DecryptData(It.IsAny<byte[]>(), encryptedValue)).Returns(compressedValue);
             _mockCompressor.Setup(m => m.Decompress(compressedValue)).Returns(serializedValue);
             _mockSerializer.Setup(m => m.Deserialize<string>(serializedValue)).Returns(value);
@@ -99,11 +118,7 @@ namespace MemStache.Distributed.Tests.Unit
 
             _mockSerializer.Setup(m => m.Serialize(value)).Returns(serializedValue);
             _mockCompressor.Setup(m => m.Compress(serializedValue)).Returns(compressedValue);
-            _mockKeyManagementService.Setup(m => m.GenerateDerivedKeyAsync(null)).ReturnsAsync(new DerivedKey { PublicKey = new byte[] { 10, 11, 12 } });
             _mockKeyManagementService.Setup(m => m.GenerateDerivedKeyAsync(It.IsAny<string>())).ReturnsAsync(new DerivedKey { PublicKey = new byte[] { 10, 11, 12 } });
-
-            // Remove the line causing the error
-            // _serviceProvider = new ServiceCollection().BuildServiceProvider();
 
             _mockCryptoService.Setup(m => m.EncryptData(It.IsAny<byte[]>(), compressedValue)).Returns(encryptedValue);
 
@@ -139,6 +154,12 @@ namespace MemStache.Distributed.Tests.Unit
 
             // Assert
             Assert.True(result);
+        }
+
+        // Dispose of the logger properly
+        public void Dispose()
+        {
+            _serilogLogger?.Dispose();
         }
     }
 }

@@ -1,19 +1,33 @@
 using System.Text;
 using Xunit;
-using Moq;
+using Serilog;
+using Serilog.Extensions.Logging;
+using Xunit.Abstractions;
 using Microsoft.Extensions.Logging;
 using MemStache.Distributed.Compression;
+using System.IO.Compression;
 
 namespace MemStache.Distributed.Tests.Unit
 {
-    public class CompressionTests
+    public class CompressionTests : IDisposable
     {
         private readonly GzipCompressor _compressor;
+        private readonly Serilog.Core.Logger _serilogLogger;
+        private readonly ITestOutputHelper _output;
 
-        public CompressionTests()
+        public CompressionTests(ITestOutputHelper output)
         {
-            var mockLogger = new Mock<ILogger<GzipCompressor>>();
-            _compressor = new GzipCompressor((Serilog.ILogger)mockLogger.Object);
+            _output = output;
+
+            // Configure Serilog to write to the xUnit test output
+            _serilogLogger = new LoggerConfiguration()
+                .MinimumLevel.Debug()
+                .WriteTo.TestOutput(_output) // Direct Serilog logs to xUnit output
+                .WriteTo.Console() // Also write to the console
+                .CreateLogger();
+
+            // Use Serilog logger directly for GzipCompressor
+            _compressor = new GzipCompressor(_serilogLogger);
         }
 
         [Fact]
@@ -58,7 +72,7 @@ namespace MemStache.Distributed.Tests.Unit
         }
 
         [Fact]
-        public void Compress_EmptyData_ShouldReturnEmptyArray()
+        public void Compress_EmptyData_ShouldReturnValidGzip()
         {
             // Arrange
             var emptyData = new byte[0];
@@ -67,7 +81,27 @@ namespace MemStache.Distributed.Tests.Unit
             var compressed = _compressor.Compress(emptyData);
 
             // Assert
-            Assert.Empty(compressed);
+            Assert.NotNull(compressed);
+            Assert.NotEmpty(compressed);
+
+            // Decompress to verify
+            using (var compressedStream = new MemoryStream(compressed))
+            using (var decompressionStream = new GZipStream(compressedStream, CompressionMode.Decompress))
+            using (var resultStream = new MemoryStream())
+            {
+                decompressionStream.CopyTo(resultStream);
+                var decompressedData = resultStream.ToArray();
+                Assert.Empty(decompressedData);
+            }
+        }
+
+
+
+
+        // Dispose of the logger properly
+        public void Dispose()
+        {
+            _serilogLogger?.Dispose();
         }
     }
 }
