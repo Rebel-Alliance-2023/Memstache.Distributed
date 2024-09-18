@@ -12,7 +12,7 @@ using MemStache.Distributed.Providers;
 using MemStache.Distributed.Serialization;
 using MemStache.Distributed.Compression;
 using MemStache.Distributed.Encryption;
-using MemStache.Distributed.KeyVaultManager;
+using MemStache.Distributed.KeyVaultManagement;
 using MemStache.Distributed.Security;
 using Rebel.Alliance.KeyVault.Secrets.Emulator;
 using NBitcoin.JsonConverters;

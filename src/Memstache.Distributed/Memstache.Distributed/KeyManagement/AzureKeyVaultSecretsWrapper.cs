@@ -6,7 +6,7 @@ using Serilog;
 using Memstache.Distributed.KeyManagement;
 using System.Collections.Concurrent;
 
-namespace MemStache.Distributed.KeyVaultManager
+namespace MemStache.Distributed.KeyVaultManagement
 {
 
     public class AzureKeyVaultSecretsWrapper : IAzureKeyVaultSecretsWrapper

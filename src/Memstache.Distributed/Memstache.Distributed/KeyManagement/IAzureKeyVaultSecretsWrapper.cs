@@ -1,7 +1,7 @@
 ﻿
 using System.Collections.Concurrent;
 
-namespace MemStache.Distributed.KeyVaultManager
+namespace MemStache.Distributed.KeyVaultManagement
 {
     public interface IAzureKeyVaultSecretsWrapper
     {

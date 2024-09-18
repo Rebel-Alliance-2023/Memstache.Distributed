@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Memstache.Distributed.KeyManagement;
+using MemStache.Distributed.KeyVaultManagement;
 
 namespace MemStache.Distributed.Security
 {
@@ -11,11 +12,11 @@ namespace MemStache.Distributed.Security
     {
         
         private readonly ICryptoService _cryptoService;
-        private readonly IAzureKeyVaultSecrets _secretsClient; // Use IAzureKeyVaultSecrets for Azure KeyVault operations
+        private readonly IAzureKeyVaultSecretsWrapper _secretsClient; // Use IAzureKeyVaultSecrets for Azure KeyVault operations
         private readonly ConcurrentDictionary<string, MasterKey> _masterKeys = new();
         private readonly ConcurrentDictionary<string, DerivedKey> _derivedKeys = new();
 
-        public KeyManagementService(ICryptoService cryptoService, IAzureKeyVaultSecrets secretsClient)
+        public KeyManagementService(ICryptoService cryptoService, IAzureKeyVaultSecretsWrapper secretsClient)
         {
             _cryptoService = cryptoService;
             _secretsClient = secretsClient;

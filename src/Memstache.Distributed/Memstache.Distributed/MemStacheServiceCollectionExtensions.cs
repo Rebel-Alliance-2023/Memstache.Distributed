@@ -6,12 +6,14 @@ using MemStache.Distributed.Serialization;
 using MemStache.Distributed.Compression;
 using MemStache.Distributed.Encryption;
 using Microsoft.Extensions.Options;
-using MemStache.Distributed.KeyVaultManager;
+using MemStache.Distributed.KeyVaultManagement;
 using Serilog;
 using MemStache.Distributed.Security;
 using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
 using Memstache.Distributed.KeyManagement;
+using Emulator = KeyVault.Secrets.Emulator.Rebel.Alliance.KeyVault.Secrets.Emulator;
+using Microsoft.Extensions.Logging;
 
 namespace MemStache.Distributed
 {
@@ -43,7 +45,7 @@ namespace MemStache.Distributed
             services.AddSingleton<IMemStacheDistributed, MemStacheDistributed>();
             services.AddSingleton<ICryptoService, CryptoService>();
             services.AddSingleton<IKeyManagementService, KeyManagementService>();
-            services.AddSingleton<ILogger>(sp => Log.Logger);
+            services.AddSingleton<Serilog.ILogger>(sp => Log.Logger);
         }
 
         private static void RegisterCacheProviders(IServiceCollection services)
@@ -97,36 +99,30 @@ namespace MemStache.Distributed
         {
             services.Configure(setupAction);
 
-            if (useEmulator)
+            // Register AzureKeyVaultSecretsWrapper as a singleton instance
+            services.AddSingleton<IAzureKeyVaultSecretsWrapper>(sp =>
             {
-                services.AddSingleton<IAzureKeyVaultSecrets, AzureKeyVaultEmulator>();
-            }
-            else
-            {
-                services.AddSingleton<IAzureKeyVaultSecrets>(sp =>
+                IAzureKeyVaultSecrets keyVaultSecrets;
+
+                if (useEmulator)
+                {
+                    var logger = sp.GetRequiredService<ILogger<Emulator.SecretClient>>();
+                    var secretClient = new Emulator.SecretClient(logger);
+                    keyVaultSecrets = new AzureKeyVaultEmulator(secretClient);
+                }
+                else
                 {
                     var options = sp.GetRequiredService<IOptions<AzureKeyVaultOptions>>().Value;
                     var secretClient = new SecretClient(new Uri(options.KeyVaultUrl), new DefaultAzureCredential());
-                    return new AzureKeyVaultSecrets(secretClient);
-                });
-            }
+                    keyVaultSecrets = new AzureKeyVaultSecrets(secretClient);
+                }
 
-            services.AddSingleton<IAzureKeyVaultSecretsWrapper, AzureKeyVaultSecretsWrapper>();
+                return new AzureKeyVaultSecretsWrapper(sp.GetRequiredService<IOptions<AzureKeyVaultOptions>>(), sp.GetRequiredService<Serilog.ILogger>(), keyVaultSecrets);
+            });
 
             return services;
         }
-
-        public class AzureKeyVaultEmulator : IAzureKeyVaultSecrets
-        {
-            private readonly SomeDependency _dependency;
-
-            public AzureKeyVaultEmulator(SomeDependency dependency)
-            {
-                _dependency = dependency;
-            }
-
-            // Implementation of IAzureKeyVaultSecrets methods
-        }
+                  
 
     }
 }

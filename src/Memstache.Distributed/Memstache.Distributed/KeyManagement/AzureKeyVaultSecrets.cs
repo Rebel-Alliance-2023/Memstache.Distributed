@@ -2,6 +2,8 @@ using Azure.Security.KeyVault.Secrets;
 using Memstache.Distributed.KeyManagement;
 using System.Collections.Concurrent;
 
+namespace MemStache.Distributed.KeyVaultManagement;
+
 public class AzureKeyVaultSecrets : IAzureKeyVaultSecrets
 {
     private readonly SecretClient _secretClient;
