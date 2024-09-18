@@ -3,6 +3,8 @@ using System.Threading.Tasks;
 
 namespace MemStache.Distributed.Security
 {
+
+
     public interface IKeyManagementService
     {
         Task<MasterKey> GenerateMasterKeyAsync();

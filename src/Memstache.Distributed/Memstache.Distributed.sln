@@ -5,7 +5,7 @@ VisualStudioVersion = 17.11.35222.181
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Memstache.Distributed", "Memstache.Distributed\Memstache.Distributed.csproj", "{6DA8C6E2-4153-4FCD-933B-7691B549DE98}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Memstache.Distributed.Tests", "Memstache.Distributed.Tests\Memstache.Distributed.Tests.csproj", "{FC2F4BD6-FDB3-4678-AF9F-1E7B26B4AACC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Memstache.Distributed.Tests", "Memstache.Distributed.Tests\Memstache.Distributed.Tests.csproj", "{8BDC6769-9B38-48AC-93E7-2B01D810FAE6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,10 +17,10 @@ Global
 		{6DA8C6E2-4153-4FCD-933B-7691B549DE98}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6DA8C6E2-4153-4FCD-933B-7691B549DE98}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6DA8C6E2-4153-4FCD-933B-7691B549DE98}.Release|Any CPU.Build.0 = Release|Any CPU
-		{FC2F4BD6-FDB3-4678-AF9F-1E7B26B4AACC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{FC2F4BD6-FDB3-4678-AF9F-1E7B26B4AACC}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{FC2F4BD6-FDB3-4678-AF9F-1E7B26B4AACC}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{FC2F4BD6-FDB3-4678-AF9F-1E7B26B4AACC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8BDC6769-9B38-48AC-93E7-2B01D810FAE6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8BDC6769-9B38-48AC-93E7-2B01D810FAE6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8BDC6769-9B38-48AC-93E7-2B01D810FAE6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8BDC6769-9B38-48AC-93E7-2B01D810FAE6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

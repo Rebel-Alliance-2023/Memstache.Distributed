@@ -8,7 +8,6 @@ using MemStache.Distributed.Providers;
 using MemStache.Distributed.Serialization;
 using MemStache.Distributed.Compression;
 using MemStache.Distributed.Security;
-using MemStache.Distributed.KeyManagement;
 using StackExchange.Redis;
 
 namespace MemStache.Distributed.Tests.Unit

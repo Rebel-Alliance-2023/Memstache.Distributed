@@ -1,6 +1,5 @@
 using System;
 using System.Threading.Tasks;
-using MemStache.Distributed.KeyManagement;
 using MemStache.Distributed.Encryption;
 using MemStache.Distributed.Security;
 using System.Text;

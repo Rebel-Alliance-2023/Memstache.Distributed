@@ -1,4 +1,6 @@
 using System;
+using Memstache.Distributed.KeyManagement;
+using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace MemStache.Distributed.Factories
@@ -63,16 +65,16 @@ namespace MemStache.Distributed.Factories
         }
     }
 
-    public class KeyManagerFactory
+    public class AzureKeyVaultSecretsFactory
     {
-        private readonly Func<IServiceProvider, IKeyManager> _factory;
+        private readonly Func<IServiceProvider, IAzureKeyVaultSecrets> _factory;
 
-        public KeyManagerFactory(Func<IServiceProvider, IKeyManager> factory)
+        public AzureKeyVaultSecretsFactory(Func<IServiceProvider, IAzureKeyVaultSecrets> factory)
         {
             _factory = factory;
         }
 
-        public IKeyManager Create(IServiceProvider serviceProvider)
+        public IAzureKeyVaultSecrets Create(IServiceProvider serviceProvider)
         {
             return _factory(serviceProvider);
         }

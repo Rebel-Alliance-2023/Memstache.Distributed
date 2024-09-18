@@ -246,5 +246,6 @@ namespace MemStache.Distributed
 
             await _cacheProvider.SetAsync(key, data, options, cancellationToken);
         }
+
     }
 }

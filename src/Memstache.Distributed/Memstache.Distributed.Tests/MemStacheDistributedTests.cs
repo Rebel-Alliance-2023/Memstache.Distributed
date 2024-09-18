@@ -10,7 +10,6 @@ using MemStache.Distributed.Providers;
 using MemStache.Distributed.Serialization;
 using MemStache.Distributed.Compression;
 using MemStache.Distributed.Security;
-using MemStache.Distributed.KeyManagement;
 using MemStache.Distributed.Factories;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;

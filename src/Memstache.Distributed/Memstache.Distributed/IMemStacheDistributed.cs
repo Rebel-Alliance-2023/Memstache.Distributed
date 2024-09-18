@@ -19,5 +19,6 @@ namespace MemStache.Distributed
         Task<SecureStash<T>> GetSecureStashAsync<T>(string key, CancellationToken cancellationToken = default);
         Task SetSecureStashAsync<T>(SecureStash<T> secureStash, MemStacheEntryOptions? options = null, CancellationToken cancellationToken = default);
         Task<(SecureStash<T> SecureStash, bool Success)> TryGetSecureStashAsync<T>(string key, CancellationToken cancellationToken = default);
+
     }
 }

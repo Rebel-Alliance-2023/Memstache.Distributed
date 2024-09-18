@@ -30,11 +30,6 @@ namespace MemStache.Distributed
         byte[] Decrypt(byte[] encryptedData, byte[] key);
     }
 
-    public interface IKeyManager
-    {
-        Task<byte[]> GetEncryptionKeyAsync(string keyIdentifier, CancellationToken cancellationToken = default);
-        Task RotateKeyAsync(string keyIdentifier, CancellationToken cancellationToken = default);
-    }
 
     public enum EvictionPolicy
     {
