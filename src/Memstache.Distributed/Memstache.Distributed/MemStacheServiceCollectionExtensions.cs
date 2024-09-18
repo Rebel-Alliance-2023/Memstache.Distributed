@@ -14,6 +14,7 @@ using Azure.Security.KeyVault.Secrets;
 using Memstache.Distributed.KeyManagement;
 using Emulator = KeyVault.Secrets.Emulator.Rebel.Alliance.KeyVault.Secrets.Emulator;
 using Microsoft.Extensions.Logging;
+using System.Text.Json;
 
 namespace MemStache.Distributed
 {
@@ -27,6 +28,9 @@ namespace MemStache.Distributed
             RegisterCoreServices(services);
             RegisterCacheProviders(services);
             RegisterServiceResolvers(services);
+
+            // Register MemStacheDistributed last
+            RegisterMemStacheDistributed(services);
 
             return services;
         }
@@ -42,7 +46,6 @@ namespace MemStache.Distributed
 
         private static void RegisterCoreServices(IServiceCollection services)
         {
-            services.AddSingleton<IMemStacheDistributed, MemStacheDistributed>();
             services.AddSingleton<ICryptoService, CryptoService>();
             services.AddSingleton<IKeyManagementService, KeyManagementService>();
             services.AddSingleton<Serilog.ILogger>(sp => Log.Logger);
@@ -122,7 +125,37 @@ namespace MemStache.Distributed
 
             return services;
         }
-                  
 
+        private static void RegisterMemStacheDistributed(IServiceCollection services)
+        {
+            services.AddSingleton<IMemStacheDistributed>(sp =>
+            {
+                var cacheProviderFactory = sp.GetRequiredService<DistributedCacheProviderFactory>();
+                var serializerFactory = sp.GetRequiredService<SerializerFactory>();
+                var compressorFactory = sp.GetRequiredService<CompressorFactory>();
+                var cryptoService = sp.GetRequiredService<ICryptoService>();
+                var keyManagementService = sp.GetRequiredService<IKeyManagementService>();
+                var options = sp.GetRequiredService<IOptions<MemStacheOptions>>();
+                var logger = sp.GetRequiredService<Serilog.ILogger>();
+                var serviceProvider = sp;
+
+                return new MemStacheDistributed(
+                    cacheProviderFactory,
+                    serializerFactory,
+                    compressorFactory,
+                    cryptoService,
+                    keyManagementService,
+                    options,
+                    logger,
+                    serviceProvider);
+            });
+
+            // Register JsonSerializerOptions
+            services.AddSingleton(new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                WriteIndented = true
+            });
+        }
     }
 }

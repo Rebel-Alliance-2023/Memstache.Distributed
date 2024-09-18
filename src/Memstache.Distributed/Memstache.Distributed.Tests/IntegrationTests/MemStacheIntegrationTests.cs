@@ -141,7 +141,7 @@ namespace Tests.MemStache.Distributed
         public Task DisposeAsync()
         {
             // Clean up Redis by flushing the database
-            _redis!.GetServer("localhost", 6379).FlushDatabase();
+            //_redis!.GetServer("localhost", 6379).FlushDatabase();
             _redis.Dispose();
             return Task.CompletedTask;
         }
