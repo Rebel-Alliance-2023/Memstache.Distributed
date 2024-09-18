@@ -7,6 +7,7 @@ using MemStache.Distributed.Factories;
 using MemStache.Distributed.EvictionPolicies;
 using MemStache.Distributed.Secure;
 using MemStache.Distributed.Security;
+using System.Diagnostics.Eventing.Reader;
 
 namespace MemStache.Distributed
 {
@@ -70,8 +71,26 @@ namespace MemStache.Distributed
 
                 if (_options.EnableEncryption)
                 {
-                    MasterKey encryptionKey = await _keyManagementService.GetMasterKeyAsync();
-                    data = _cryptoService.DecryptData(encryptionKey.PrivateKey, data);
+                    byte[] privateKey;
+                    DerivedKey derivedKey = await _keyManagementService.GetDerivedKeyAsync(key);
+                    if (derivedKey != null)
+                    {
+                        privateKey = derivedKey.PrivateKey;
+                    }
+                    else
+                    {
+                        MasterKey encryptionKey = await _keyManagementService.GetMasterKeyAsync();
+                        if (encryptionKey != null)
+                        {
+                            privateKey = encryptionKey.PrivateKey;
+                        }
+                        else
+                        {
+                            throw new Exception("No key encryption found to perform operation");
+                        }
+                    }
+
+                    data = _cryptoService.DecryptData(privateKey, data);
                 }
 
                 if (_options.EnableCompression)
@@ -100,11 +119,27 @@ namespace MemStache.Distributed
                 {
                     data = _compressor.Compress(data);
                 }
-
+                byte[] pubKey;
                 if (_options.EnableEncryption || options.Encrypt)
-                {
-                    MasterKey encryptionKey = await _keyManagementService.GetMasterKeyAsync();
-                    data = _cryptoService.EncryptData(encryptionKey.PublicKey, data);
+                {                    
+                    DerivedKey derivedKey = await _keyManagementService.GetDerivedKeyAsync(key);
+                    if (derivedKey != null)
+                    {
+                        pubKey = derivedKey.PublicKey;
+                    }
+                    else
+                    {
+                        MasterKey encryptionKey = await _keyManagementService.GetMasterKeyAsync();
+                        if (encryptionKey != null)
+                        {
+                            pubKey = encryptionKey.PublicKey;
+                        }
+                        else
+                        {
+                            throw new Exception("No key encryption found to perform operation");
+                        }
+                    }
+                    data = _cryptoService.EncryptData(pubKey, data);
                 }
 
                 await _cacheProvider.SetAsync(key, data, options, cancellationToken);

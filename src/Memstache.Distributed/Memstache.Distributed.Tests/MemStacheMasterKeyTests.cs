@@ -16,7 +16,7 @@ using Moq;
 
 namespace MemStache.Distributed.Tests.Unit
 {
-    public class MemStacheDistributedTests : IDisposable
+    public class MemStacheMasterKeyTests : IDisposable
     {
         private readonly Mock<IDistributedCacheProviderFactory> _mockCacheProviderFactory;
         private readonly Mock<ISerializerFactory> _mockSerializerFactory;
@@ -32,7 +32,7 @@ namespace MemStache.Distributed.Tests.Unit
         private readonly IServiceProvider _serviceProvider;
         private readonly ITestOutputHelper _output;
 
-        public MemStacheDistributedTests(ITestOutputHelper output)
+        public MemStacheMasterKeyTests(ITestOutputHelper output)
         {
             _output = output;
 

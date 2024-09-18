@@ -73,7 +73,7 @@ namespace MemStache.Distributed.Security
         {
             keyId = string.IsNullOrEmpty(keyId) ? default_masterKey : keyId;
 
-            var masterKey = await GetMasterKeyAsync(keyId);
+            var masterKey = await GetMasterKeyAsync();
             if (masterKey == null)
             {
                 throw new InvalidOperationException("Master key not found");
