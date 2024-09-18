@@ -30,6 +30,7 @@ namespace Tests.MemStache.Distributed
         private IMemStacheDistributed _memStache;
         private IAzureKeyVaultSecretsWrapper _keyVaultSecretsWrapper;
         private ConnectionMultiplexer _redis;
+        private string _masterKeyId;
         private readonly Serilog.ILogger _serilogLogger;
 
         public MemStacheIntegrationTests()
@@ -78,6 +79,9 @@ namespace Tests.MemStache.Distributed
 
                 // Initialize Redis connection
                 _redis = await ConnectionMultiplexer.ConnectAsync("localhost:6379");
+
+                await InitializeMasterKey();
+
             }
             catch (Exception ex)
             {
@@ -86,8 +90,10 @@ namespace Tests.MemStache.Distributed
             }
         }
 
-
-
+        private async Task InitializeMasterKey()
+        {
+            MasterKey masterKey = await _keyManagementService.GenerateMasterKeyAsync();
+        }
 
         [Fact]
         public async Task SetAndGetString_ShouldStoreAndRetrieveCorrectValue()

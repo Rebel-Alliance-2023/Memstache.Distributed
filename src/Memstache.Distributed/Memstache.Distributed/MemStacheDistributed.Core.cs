@@ -70,7 +70,7 @@ namespace MemStache.Distributed
 
                 if (_options.EnableEncryption)
                 {
-                    var encryptionKey = await _keyManagementService.GetDerivedKeyAsync(key);
+                    MasterKey encryptionKey = await _keyManagementService.GetMasterKeyAsync();
                     data = _cryptoService.DecryptData(encryptionKey.PrivateKey, data);
                 }
 
@@ -103,7 +103,7 @@ namespace MemStache.Distributed
 
                 if (_options.EnableEncryption || options.Encrypt)
                 {
-                    var encryptionKey = await _keyManagementService.GenerateDerivedKeyAsync();
+                    MasterKey encryptionKey = await _keyManagementService.GetMasterKeyAsync();
                     data = _cryptoService.EncryptData(encryptionKey.PublicKey, data);
                 }
 

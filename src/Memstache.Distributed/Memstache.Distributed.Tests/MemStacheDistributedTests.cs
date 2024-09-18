@@ -89,12 +89,19 @@ namespace MemStache.Distributed.Tests.Unit
             var serializedValue = new byte[] { 1, 2, 3 };
             var compressedValue = new byte[] { 4, 5, 6 };
             var encryptedValue = new byte[] { 7, 8, 9 };
+            var masterPrivateKey = new byte[] { 10, 11, 12 };
+            var masterPublicKey = new byte[] { 13, 14, 15 };
 
             _mockCacheProvider.Setup(m => m.GetAsync(key, default)).ReturnsAsync(encryptedValue);
 
-            _mockKeyManagementService.Setup(m => m.GetDerivedKeyAsync(key)).ReturnsAsync(new DerivedKey { PrivateKey = new byte[] { 10, 11, 12 } });
+            _mockKeyManagementService.Setup(m => m.GetMasterKeyAsync(It.IsAny<string>())).ReturnsAsync(new MasterKey
+            {
+                Id = "masterKeyId",
+                PrivateKey = masterPrivateKey,
+                PublicKey = masterPublicKey
+            });
 
-            _mockCryptoService.Setup(m => m.DecryptData(It.IsAny<byte[]>(), encryptedValue)).Returns(compressedValue);
+            _mockCryptoService.Setup(m => m.DecryptData(masterPrivateKey, encryptedValue)).Returns(compressedValue);
             _mockCompressor.Setup(m => m.Decompress(compressedValue)).Returns(serializedValue);
             _mockSerializer.Setup(m => m.Deserialize<string>(serializedValue)).Returns(value);
 
@@ -105,6 +112,8 @@ namespace MemStache.Distributed.Tests.Unit
             Assert.Equal(value, result);
         }
 
+
+
         [Fact]
         public async Task SetAsync_ShouldSerializeCompressEncryptAndStore()
         {
@@ -114,12 +123,19 @@ namespace MemStache.Distributed.Tests.Unit
             var serializedValue = new byte[] { 1, 2, 3 };
             var compressedValue = new byte[] { 4, 5, 6 };
             var encryptedValue = new byte[] { 7, 8, 9 };
+            var masterPrivateKey = new byte[] { 10, 11, 12 };
+            var masterPublicKey = new byte[] { 13, 14, 15 };
 
             _mockSerializer.Setup(m => m.Serialize(value)).Returns(serializedValue);
             _mockCompressor.Setup(m => m.Compress(serializedValue)).Returns(compressedValue);
-            _mockKeyManagementService.Setup(m => m.GenerateDerivedKeyAsync(It.IsAny<string>())).ReturnsAsync(new DerivedKey { PublicKey = new byte[] { 10, 11, 12 } });
+            _mockKeyManagementService.Setup(m => m.GetMasterKeyAsync(It.IsAny<string>())).ReturnsAsync(new MasterKey
+            {
+                Id = "masterKeyId",
+                PrivateKey = masterPrivateKey,
+                PublicKey = masterPublicKey
+            });
 
-            _mockCryptoService.Setup(m => m.EncryptData(It.IsAny<byte[]>(), compressedValue)).Returns(encryptedValue);
+            _mockCryptoService.Setup(m => m.EncryptData(masterPublicKey, compressedValue)).Returns(encryptedValue);
 
             // Act
             await _memStache.SetAsync(key, value);
