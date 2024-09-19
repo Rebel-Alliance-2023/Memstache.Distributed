@@ -132,16 +132,6 @@ public class ExampleController : ControllerBase
 
 This example demonstrates how to inject and use `IMemStacheDistributed` in a service to get or set data in the cache.
 
-## Running the Rebel Alliance KeyVault Secrets Emulator
-
-For local development, ensure the Rebel Alliance KeyVault Secrets Emulator is running. You can start it using the following command:
-
-```shell
-dotnet run --project path/to/Rebel.Alliance.KeyVault.Secrets.Emulator.csproj
-```
-
-The emulator will start on `http://localhost:5000` by default, which matches the URL specified in the configuration above.
-
 ## Next Steps
 
 - Explore more advanced features like [Secure Stash](./SecureStash.md) for handling sensitive data.

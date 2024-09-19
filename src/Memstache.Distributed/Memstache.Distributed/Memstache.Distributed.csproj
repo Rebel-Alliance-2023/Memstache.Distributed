@@ -1,48 +1,52 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <LangVersion>latest</LangVersion>
-    <Version>1.0.0</Version>
-    <Authors>Dennis Landi</Authors>
-    <Company>Allied Data, Inc.</Company>
-    <Description>MemStache.Distributed is a high-performance, distributed caching library for .NET applications.</Description>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageProjectUrl>https://github.com/Rebel-Alliance-2023/Memstache.Distributed</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/Rebel-Alliance-2023/Memstache.Distributed</RepositoryUrl>
-    <RepositoryType>git</RepositoryType>
-    <PackageTags>caching;distributed;redis;azure</PackageTags>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<LangVersion>latest</LangVersion>
+		<Version>1.0.0</Version>
+		<Authors>Dennis Landi</Authors>
+		<Company>Allied Data, Inc.</Company>
+		<Description>MemStache.Distributed is a high-performance, distributed caching library for .NET applications.</Description>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<PackageProjectUrl>https://github.com/Rebel-Alliance-2023/Memstache.Distributed</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/Rebel-Alliance-2023/Memstache.Distributed</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+		<PackageTags>caching;distributed;redis;azure</PackageTags>
 
-  <ItemGroup>
-    <PackageReference Include="Azure.Security.KeyVault.Secrets" Version="4.6.0" />
-    <PackageReference Include="Microsoft.Extensions.Caching.Abstractions" Version="8.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="8.0.0" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.1" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.1" />
-    <PackageReference Include="Microsoft.Extensions.Options" Version="8.0.2" />
-    <PackageReference Include="NBitcoin" Version="7.0.38" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageReference Include="Polly" Version="8.4.1" />
-    <PackageReference Include="Rebel.Alliance.KeyVault.Secrets.Emulator" Version="1.0.1" />
-    <PackageReference Include="StackExchange.Redis" Version="2.8.12" />
-    <PackageReference Include="System.Linq.Async" Version="6.0.1" />
-    <PackageReference Include="System.Text.Json" Version="8.0.4" />
-    <PackageReference Include="Azure.Security.KeyVault.Keys" Version="4.6.0" />
-    <PackageReference Include="Azure.Identity" Version="1.12.0" />
-    <PackageReference Include="Serilog" Version="4.0.1" />
-    <PackageReference Include="Serilog.Extensions.Logging" Version="8.0.0" />
-    <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
-    <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
-	  <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.9.0" />
-	  <PackageReference Include="OpenTelemetry.Exporter.Jaeger" Version="1.5.1" />
-	  <PackageReference Include="OpenTelemetry.Exporter.Zipkin" Version="1.9.0" />
-	  <PackageReference Include="OpenTelemetry.Exporter.Prometheus.AspNetCore" Version="1.5.1-alpha.1" />
-	  <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.9.0" />
-	  <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.9.0" />
+		<!-- Include Symbols for Debugging -->
+		<IncludeSymbols>true</IncludeSymbols>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+	</PropertyGroup>
 
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Azure.Security.KeyVault.Secrets" Version="4.6.0" />
+		<PackageReference Include="Microsoft.Extensions.Caching.Abstractions" Version="8.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="8.0.0" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.1" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.1" />
+		<PackageReference Include="Microsoft.Extensions.Options" Version="8.0.2" />
+		<PackageReference Include="NBitcoin" Version="7.0.38" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+		<PackageReference Include="Polly" Version="8.4.1" />
+		<PackageReference Include="Rebel.Alliance.KeyVault.Secrets.Emulator" Version="1.0.1" />
+		<PackageReference Include="StackExchange.Redis" Version="2.8.12" />
+		<PackageReference Include="System.Linq.Async" Version="6.0.1" />
+		<PackageReference Include="System.Text.Json" Version="8.0.4" />
+		<PackageReference Include="Azure.Security.KeyVault.Keys" Version="4.6.0" />
+		<PackageReference Include="Azure.Identity" Version="1.12.0" />
+		<PackageReference Include="Serilog" Version="4.0.1" />
+		<PackageReference Include="Serilog.Extensions.Logging" Version="8.0.0" />
+		<PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
+		<PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
+		<PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.9.0" />
+		<PackageReference Include="OpenTelemetry.Exporter.Jaeger" Version="1.5.1" />
+		<PackageReference Include="OpenTelemetry.Exporter.Zipkin" Version="1.9.0" />
+		<PackageReference Include="OpenTelemetry.Exporter.Prometheus.AspNetCore" Version="1.5.1-alpha.1" />
+		<PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.9.0" />
+		<PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.9.0" />
+
+	</ItemGroup>
 
 </Project>
