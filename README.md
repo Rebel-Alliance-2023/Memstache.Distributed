@@ -1,5 +1,7 @@
 # MemStache.Distributed Library Documentation
 
+[nuget package](https://www.nuget.org/packages/Memstache.Distributed)
+
 ## Table of Contents
 1. [Introduction](#introduction)
 2. [Core Components](#core-components)
