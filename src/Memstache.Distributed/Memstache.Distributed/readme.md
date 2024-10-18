@@ -19,15 +19,15 @@ MemStache.Distributed is a high-performance, feature-rich distributed caching li
 
 For more detailed information, please refer to the following documentation:
 
-- [Introduction](/_docs/Introduction.md)
-- [Getting Started](/_docs/GettingStarted.md)
-- [Core Concepts](/_docs/CoreConcepts.md)
-- [Features in Detail](/_docs/FeaturesInDetail.md)
-- [Configuration](/_docs/Configuration.md)
-- [Usage Guide](/_docs/UsageGuide.md)
-- [Advanced Topics](/_docs/AdvancedTopics.md)
-- [Development and Testing](/_docs/DevelopmentAndTesting.md)
-- [API Reference](/_docs/APIReference.md)
+- [Introduction](https://github.com/Rebel-Alliance-2023/Memstache.Distributed/edit/main/src/Memstache.Distributed/Memstache.Distributed/readme.md)
+- [Getting Started](https://github.com/Rebel-Alliance-2023/Memstache.Distributed/blob/main/src/Memstache.Distributed/Memstache.Distributed/_docs/memstache-getting-started.md) 
+- [Core Concepts](https://github.com/Rebel-Alliance-2023/Memstache.Distributed/blob/main/src/Memstache.Distributed/Memstache.Distributed/_docs/memstache-core-concepts.md)
+- [Features in Detail](https://github.com/Rebel-Alliance-2023/Memstache.Distributed/blob/main/src/Memstache.Distributed/Memstache.Distributed/_docs/memstache-features-in-detail.md)
+- [Configuration](https://github.com/Rebel-Alliance-2023/Memstache.Distributed/blob/main/src/Memstache.Distributed/Memstache.Distributed/_docs/memstache-configuration.md)
+- [Usage Guide](https://github.com/Rebel-Alliance-2023/Memstache.Distributed/blob/main/src/Memstache.Distributed/Memstache.Distributed/_docs/memstache-usage-guide.md)
+- [Advanced Topics](https://github.com/Rebel-Alliance-2023/Memstache.Distributed/blob/main/src/Memstache.Distributed/Memstache.Distributed/_docs/memstache-advanced-topics.md)
+- [Development and Testing](https://github.com/Rebel-Alliance-2023/Memstache.Distributed/blob/main/src/Memstache.Distributed/Memstache.Distributed/_docs/memstache-development-and-testing.md)
+- [API Reference](https://github.com/Rebel-Alliance-2023/Memstache.Distributed/edit/main/src/Memstache.Distributed/Memstache.Distributed/readme.md)
 
 ## Quick Start
 
