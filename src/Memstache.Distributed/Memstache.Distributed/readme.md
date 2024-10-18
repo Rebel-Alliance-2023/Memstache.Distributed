@@ -19,7 +19,7 @@ MemStache.Distributed is a high-performance, feature-rich distributed caching li
 
 For more detailed information, please refer to the following documentation:
 
-- [Introduction](https://github.com/Rebel-Alliance-2023/Memstache.Distributed/edit/main/src/Memstache.Distributed/Memstache.Distributed/readme.md)
+- [Introduction](https://github.com/Rebel-Alliance-2023/Memstache.Distributed/blob/main/src/Memstache.Distributed/Memstache.Distributed/_docs/memstache-introduction.md)
 - [Getting Started](https://github.com/Rebel-Alliance-2023/Memstache.Distributed/blob/main/src/Memstache.Distributed/Memstache.Distributed/_docs/memstache-getting-started.md) 
 - [Core Concepts](https://github.com/Rebel-Alliance-2023/Memstache.Distributed/blob/main/src/Memstache.Distributed/Memstache.Distributed/_docs/memstache-core-concepts.md)
 - [Features in Detail](https://github.com/Rebel-Alliance-2023/Memstache.Distributed/blob/main/src/Memstache.Distributed/Memstache.Distributed/_docs/memstache-features-in-detail.md)
