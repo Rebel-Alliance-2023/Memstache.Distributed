@@ -64,7 +64,6 @@ For more detailed information, please refer to the following documentation:
    }
    ```
 
-For more detailed usage instructions, see the [Usage Guide](/_docs/UsageGuide.md).
 
 ## Contributing
 
