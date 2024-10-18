@@ -27,7 +27,7 @@ For more detailed information, please refer to the following documentation:
 - [Usage Guide](https://github.com/Rebel-Alliance-2023/Memstache.Distributed/blob/main/src/Memstache.Distributed/Memstache.Distributed/_docs/memstache-usage-guide.md)
 - [Advanced Topics](https://github.com/Rebel-Alliance-2023/Memstache.Distributed/blob/main/src/Memstache.Distributed/Memstache.Distributed/_docs/memstache-advanced-topics.md)
 - [Development and Testing](https://github.com/Rebel-Alliance-2023/Memstache.Distributed/blob/main/src/Memstache.Distributed/Memstache.Distributed/_docs/memstache-development-and-testing.md)
-- [API Reference](https://github.com/Rebel-Alliance-2023/Memstache.Distributed/edit/main/src/Memstache.Distributed/Memstache.Distributed/readme.md)
+- [API Reference](https://github.com/Rebel-Alliance-2023/Memstache.Distributed/blob/main/src/Memstache.Distributed/Memstache.Distributed/_docs/memstache-api-reference.md)
 
 ## Quick Start
 
