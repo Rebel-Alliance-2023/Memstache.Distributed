@@ -116,5 +116,35 @@ namespace MemStache.Distributed.Security
             Buffer.BlockCopy(second, 0, combined, first.Length, second.Length);
             return combined;
         }
+
+        public Task<string> GenerateMnemonicAsync()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<(byte[] PublicKey, byte[] PrivateKey)> GenerateKeyPairFromMnemonicAsync(string mnemonic)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<byte[]> EncryptDataAsync(byte[] publicKey, byte[] data)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<byte[]> DecryptDataAsync(byte[] privateKey, byte[] data)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<byte[]> SignDataAsync(byte[] privateKey, byte[] data)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<bool> VerifyDataAsync(byte[] publicKey, byte[] data, byte[] signature)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

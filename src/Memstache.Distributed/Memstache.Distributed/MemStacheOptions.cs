@@ -13,6 +13,7 @@ namespace MemStache.Distributed
         public EvictionPolicy GlobalEvictionPolicy { get; set; } = EvictionPolicy.LRU;
         public TimeSpan? DefaultAbsoluteExpiration { get; set; }
         public TimeSpan? DefaultSlidingExpiration { get; set; }
+        public string DefaultMasterKeyId { get; internal set; }
     }
 
 }
